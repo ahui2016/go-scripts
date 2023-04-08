@@ -3,27 +3,53 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 
+	"github.com/pelletier/go-toml/v2"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 
 	"github.com/ahui2016/go-scripts/util"
 )
 
-const tomlName = "one-way-sync.toml"
+const configFileName = "one-way-sync.toml"
 
 var overwrite bool
 
-type Pair struct {
+type Config struct {
 	Src string
 	Dst string
 }
 
-func (p *Pair) String() string {
-	src := "SrcDir: " + p.Src
-	dst := "DstDir: " + p.Dst
+func (cfg *Config) String() string {
+	src := "SrcDir: " + cfg.Src
+	dst := "DstDir: " + cfg.Dst
 	return fmt.Sprintf("%s\n%s", src, dst)
+}
+
+func (cfg *Config) Load(tomlPath string) {
+	if tomlPath == "" {
+		tomlPath = configFileName
+	}
+	data := lo.Must(os.ReadFile(tomlPath))
+	lo.Must0(toml.Unmarshal(data, cfg))
+	cfg.check()
+}
+
+func (cfg *Config) check() {
+	for _, dirPath := range []string{cfg.Src, cfg.Dst} {
+		info, ok := util.PathIsExist(dirPath)
+		if !ok {
+			log.Fatalf("Not Found: %s\n", dirPath)
+		}
+		if !info.IsDir() {
+			log.Fatalf("不是資料夾: %s\n", dirPath)
+		}
+		if !filepath.IsAbs(dirPath) {
+			log.Fatalf("不是絕對路徑: %s\n", dirPath)
+		}
+	}
 }
 
 // newCmd represents the new command
@@ -34,7 +60,7 @@ var newCmd = &cobra.Command{
     one-way-sync new '.' 'D:/temp'`,
 	Args: cobra.ExactArgs(2),
 	PreRun: func(cmd *cobra.Command, args []string) {
-		if err := util.CheckOverwriteFile(tomlName, overwrite); err != nil {
+		if err := util.CheckOverwriteFile(configFileName, overwrite); err != nil {
 			log.Fatal(err)
 		}
 	},
@@ -44,10 +70,10 @@ var newCmd = &cobra.Command{
 		if err := util.WrapErrors(e1, e2); err != nil {
 			log.Fatal(err)
 		}
-		pair := Pair{srcDir, dstDir}
-		lo.Must0(util.WriteTOML(pair, tomlName))
-		fmt.Println("Write " + tomlName)
-		fmt.Println(pair.String())
+		cfg := Config{srcDir, dstDir}
+		lo.Must0(util.WriteTOML(cfg, configFileName))
+		fmt.Println("Write " + configFileName)
+		fmt.Println(cfg.String())
 	},
 }
 
@@ -58,7 +84,7 @@ func init() {
 		&overwrite,
 		"overwrite",
 		false,
-		"Overwrite disabled by default, set to true to overwrite files",
+		"默認禁止覆蓋檔案, 使用該參數則允許覆蓋.",
 	)
 
 	// Here you will define your flags and configuration settings.

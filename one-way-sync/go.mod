@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/ahui2016/go-scripts v0.0.0-20230408024437-b5f85f7030ab
+	github.com/pelletier/go-toml/v2 v2.0.7
 	github.com/samber/lo v1.38.1
 	github.com/spf13/cobra v1.7.0
 )
