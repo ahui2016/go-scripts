@@ -19,8 +19,8 @@ var rootCmd = &cobra.Command{
 以 SrcDir 為準, 向 DstDir 添加檔案, 或更新/刪除 DstDir 中的檔案.
 使用方法: 'one-way-sync config.toml', 其中 config.toml 的內容如下.
 
-    SrcDir: '/path/to/src-dir'
-    DstDir: '/path/to/dst-dir'
+    SrcDir = '/path/to/src-dir'
+    DstDir = '/path/to/dst-dir'
 `,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
