@@ -39,8 +39,8 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if !forceRun {
 			fmt.Printf("\n現在是 **Dry Run** 模式, 僅列印將要發生的變化.\n")
-			fmt.Print("只有使用 --force 參數才會實際執行.\n")
-			fmt.Print("必須使用 --force --delete 參數才會刪除檔案.\n")
+			fmt.Printf("只有使用 --force 參數才會實際執行.\n")
+			fmt.Printf("必須使用 --force --delete 參數才會刪除檔案.\n")
 		}
 		fmt.Printf("\n[Source] %s\n", config.Src)
 		fmt.Printf("[Target] %s\n\n", config.Dst)
@@ -53,7 +53,11 @@ var rootCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 		if n+m == 0 {
-			fmt.Println("兩個資料夾內的檔案相同 (本程式不處理子目錄)")
+			fmt.Printf("兩個資料夾內的檔案相同 (本程式不處理子目錄)\n\n")
+			return
+		}
+		if m > 0 && !forceDelete {
+			fmt.Println("發現多餘檔案, 但未執行刪除, 必須使用 --force --delete 參數才會刪除檔案.")
 		}
 		fmt.Println()
 	},
