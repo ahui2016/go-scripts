@@ -17,6 +17,8 @@ var config = new(Config)
 
 var forceRun bool
 
+var forceDelete bool
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "one-way-sync",
@@ -38,6 +40,7 @@ var rootCmd = &cobra.Command{
 		if !forceRun {
 			fmt.Printf("\n現在是 **Dry Run** 模式, 僅列印將要發生的變化.\n")
 			fmt.Print("只有使用 --force 參數才會實際執行.\n")
+			fmt.Print("必須使用 --force --delete 參數才會刪除檔案.\n")
 		}
 		fmt.Printf("\n[Source] %s\n", config.Src)
 		fmt.Printf("[Target] %s\n\n", config.Dst)
@@ -45,7 +48,7 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		m, err := deleteFiles(config.Src, config.Dst, forceRun)
+		m, err := deleteFiles(config.Src, config.Dst, forceRun, forceDelete)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -79,6 +82,13 @@ func init() {
 		"force",
 		false,
 		"默認僅列印將要發生變化的檔案, 只有使用該參數才會實際執行.",
+	)
+
+	rootCmd.Flags().BoolVar(
+		&forceDelete,
+		"delete",
+		false,
+		"默認不刪除檔案, 只有使用該參數才會執行刪除.",
 	)
 
 }
@@ -140,7 +150,7 @@ func addOrUpdateFiles(srcDir, dstDir string, force bool) (count int, err error) 
 	return
 }
 
-func deleteFiles(srcDir, dstDir string, force bool) (count int, err error) {
+func deleteFiles(srcDir, dstDir string, force, delete bool) (count int, err error) {
 	files, err := filepath.Glob(dstDir + Separator + "*")
 	if err != nil {
 		return
@@ -167,12 +177,15 @@ func deleteFiles(srcDir, dstDir string, force bool) (count int, err error) {
 		}
 
 		if srcNotExist {
-			if force {
+			if force && delete {
 				if err := os.Remove(dstFile); err != nil {
 					return count, err
 				}
+				fmt.Printf("DELETE => %s\n", dstFile)
 			}
-			fmt.Printf("DELETE => %s\n", dstFile)
+			if !force && !delete {
+				fmt.Printf("DELETE => %s\n", dstFile)
+			}
 			count++
 		}
 	}
