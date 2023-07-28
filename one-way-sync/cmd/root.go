@@ -56,7 +56,7 @@ var rootCmd = &cobra.Command{
 			fmt.Printf("兩個資料夾內的檔案相同 (本程式不處理子目錄)\n\n")
 			return
 		}
-		if m > 0 && !forceDelete {
+		if forceRun && m > 0 && !forceDelete {
 			fmt.Println("發現多餘檔案, 但未執行刪除, 必須使用 --force --delete 參數才會刪除檔案.")
 		}
 		fmt.Println()
